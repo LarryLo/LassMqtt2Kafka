@@ -1,5 +1,6 @@
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import receivers.LassKafka
 
 object Lass {
 
@@ -10,8 +11,8 @@ object Lass {
 
 //     LassFile.receiver(ssc)
 //     LassNc.receiver(ssc)
-     val dstream = LassMqtt.receiver(ssc) // Have to change LassMqtt.scala.github to LassMqtt.scala
-     dstream.print()
+     val dstream = new LassMqtt().receiver(ssc) // Have to change LassMqtt.scala.github to LassMqtt.scala
+     new LassKafka().producer(dstream)
 
      ssc.start()
      ssc.awaitTermination()
