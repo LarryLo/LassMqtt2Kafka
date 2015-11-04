@@ -1,3 +1,5 @@
+package queue
+
 import org.apache.spark.streaming.StreamingContext
 
 /**
