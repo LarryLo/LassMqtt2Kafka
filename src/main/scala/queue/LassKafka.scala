@@ -14,5 +14,5 @@ class LassKafka {
   val kafkaConfigs = ConfigurationParser.getKafkaConfigs()
 
   def producer() = new KafkaProducer[String, String](kafkaConfigs.get)
-  def productRecord(message: String) = new ProducerRecord[String, String]("LASS", message)
+  def productRecord(message: String) = new ProducerRecord[String, String]("lass", message)
 }
