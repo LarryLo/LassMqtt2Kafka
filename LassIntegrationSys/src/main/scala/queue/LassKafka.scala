@@ -1,6 +1,10 @@
 package queue
 
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+import org.apache.spark.storage.StorageLevel
+import org.apache.spark.streaming.StreamingContext
+import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.streaming.kafka.KafkaUtils
 import org.slf4j.LoggerFactory
 import parser.ConfigurationParser
 import collection.JavaConversions._
@@ -15,4 +19,10 @@ class LassKafka {
 
   def producer() = new KafkaProducer[String, String](kafkaConfigs.get)
   def productRecord(message: String) = new ProducerRecord[String, String]("lass", message)
+
+  def receiver(ssc: StreamingContext): DStream[String] = {
+    val lines = KafkaUtils.createStream(ssc, "master1:2181", "0", Map("lass" -> 1), StorageLevel.MEMORY_AND_DISK_SER_2).map(_._2)
+    val words = lines.flatMap(_.split(" "))
+    words
+  }
 }
