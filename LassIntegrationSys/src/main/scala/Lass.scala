@@ -14,7 +14,7 @@ object Lass {
       args(0) match {
         case "LASSProducer" => {
 
-          val conf = new SparkConf().setAppName("LASSProducer").setMaster("spark://master1:7077")
+          val conf = new SparkConf().setAppName("LASSProducer").setMaster("spark://master1:7077").set("spark.cores.max", "2")
           val ssc = new StreamingContext(conf, Seconds(10))
 
           val producer = new LassKafka().producer()
@@ -34,22 +34,30 @@ object Lass {
 
         case "LASSxKibana" => {
 
-          val conf = new SparkConf().setAppName("LASSxKibana").setMaster("spark://master1:7077")
+          val conf = new SparkConf().setAppName("LASSxKibana").setMaster("spark://master1:7077").set("spark.cores.max", "2")
           // Set Elasticsearch support
-          conf.set("es.index.auto.create", "true")
+          conf
+            .set("es.nodes", "127.0.0.1:9200")
+            .set("es.mapping.id", "id")
+            .set("es.index.auto.create", "true")
 
           val ssc = new StreamingContext(conf, Seconds(10))
-
           val dStream = new LassKafka().receiver(ssc)
           dStream.foreachRDD( rddMsgs => {
-            val rddEsMsg = rddMsgs.map { msg =>
-              msg.split("|").map { param =>
+            val allParams = rddMsgs.map { msg =>
+              msg.split("""\|""").filterNot(_.isEmpty).map { param =>
                 val pair = param.split("=")
                 (pair(0), pair(1))
               }.toMap
             }
-            new ElasticSearch().saveToEs(rddEsMsg)
+            try {
+              allParams.collect().foreach(println)
+              new ElasticSearch().saveToEs(allParams)
 
+            } catch {
+              case e: Exception =>
+                logger.error(e.toString)
+            }
           })
 
           ssc.start()

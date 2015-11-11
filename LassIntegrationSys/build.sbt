@@ -4,7 +4,7 @@ lazy val root = (project in file(".")).
     version := "0.1",
     scalaVersion := "2.10.4"
   )
-
+/*
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "1.5.1",
   "org.apache.kafka" % "kafka-clients" % "0.8.2.1",
@@ -14,8 +14,9 @@ libraryDependencies ++= Seq(
   "org.apache.spark" % "spark-streaming-kafka_2.10" % "1.5.1",
   "org.elasticsearch" % "elasticsearch-spark_2.10" % "2.1.2"
 )
+*/
 
-/*
+
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "1.5.1" % "provided",
   "org.apache.kafka" % "kafka-clients" % "0.8.2.1",
@@ -33,6 +34,5 @@ mergeStrategy in assembly := {
   case "reference.conf"                                    => MergeStrategy.concat
   case _                                                   => MergeStrategy.first
 }
-*/
 
 assemblyJarName in assembly := "Lass.jar"
