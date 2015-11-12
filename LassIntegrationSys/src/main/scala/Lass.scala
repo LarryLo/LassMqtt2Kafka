@@ -35,6 +35,7 @@ object Lass {
         case "LASSxKibana" => {
 
           val conf = new SparkConf().setAppName("LASSxKibana").setMaster("spark://master1:7077").set("spark.cores.max", "2")
+          val es = new ElasticSearch().appendEsConfigs(conf)
 
           val ssc = new StreamingContext(conf, Seconds(10))
           val dStream = new LassKafka().receiver(ssc)
@@ -48,9 +49,7 @@ object Lass {
             }
 
             val esParams = allParams.collect()
-            val es = new ElasticSearch()
-              es.appendEsConfigs(conf)
-                .saveToEs(esParams)
+            es.saveToEs(esParams)
 
           })
 
