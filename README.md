@@ -13,7 +13,7 @@
 - Spark: 1.5.1
 - Kafka: 0.8.2.1
 - Elasticsearch: 2.0
-- Kibana: 5601
+- Kibana: 4.2
 
 ##Basic Port:
 
@@ -21,6 +21,7 @@
 - 7077: Spark
 - 9092: Kafka
 - 9200: Elasticsearch
+- 5601: Kibana
 
 ##Run Steps:
 

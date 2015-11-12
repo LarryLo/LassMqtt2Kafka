@@ -6,7 +6,7 @@ import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 import org.slf4j.LoggerFactory
-import parser.ConfigurationParser
+import parser.{KafkaConfigParser}
 import collection.JavaConversions._
 
 /**
@@ -15,7 +15,7 @@ import collection.JavaConversions._
 class LassKafka {
   val logger = LoggerFactory.getLogger(classOf[LassKafka])
   // Kakfa configuration
-  val kafkaConfigs = ConfigurationParser.getKafkaConfigs()
+  val kafkaConfigs = KafkaConfigParser.readConfigs
 
   def producer() = new KafkaProducer[String, String](kafkaConfigs.get)
   def productRecord(message: String) = new ProducerRecord[String, String]("lass", message)
