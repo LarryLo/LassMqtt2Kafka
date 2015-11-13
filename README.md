@@ -14,6 +14,7 @@
 - Kafka: 0.8.2.1
 - Elasticsearch: 2.0
 - Kibana: 4.2
+- MongoDB: 2.0.8
 
 ##Basic Port:
 
@@ -22,6 +23,7 @@
 - 9092: Kafka
 - 9200: Elasticsearch
 - 5601: Kibana
+- 27017: mongod
 
 ##Run Steps:
 
