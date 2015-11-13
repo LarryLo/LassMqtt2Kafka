@@ -14,16 +14,17 @@ object Lass {
       args(0) match {
         case "LASSProducer" => {
 
-          val conf = new SparkConf().setAppName("LASSProducer").setMaster("spark://master1:7077").set("spark.cores.max", "2")
+          val conf = new SparkConf().setAppName("LASSProducer").setMaster("spark://lassy:7077").set("spark.cores.max", "2")
           val ssc = new StreamingContext(conf, Seconds(10))
+          val kafka = new LassKafka()
+          val producer = kafka.producer()
 
-          val producer = new LassKafka().producer()
           val dStream = new LassMqtt().receiver(ssc)
           dStream.foreachRDD( rddMsgs => {
             val msgs = rddMsgs.collect()
             msgs.foreach( msg => {
               println("\u001b[0;31m" + msg + "\u001b[m")
-              producer.send(new LassKafka().productRecord(msg))
+              producer.send(kafka.productRecord(msg))
             })
           })
 
@@ -34,7 +35,7 @@ object Lass {
 
         case "LASSxKibana" => {
 
-          val conf = new SparkConf().setAppName("LASSxKibana").setMaster("spark://master1:7077").set("spark.cores.max", "2")
+          val conf = new SparkConf().setAppName("LASSxKibana").setMaster("spark://lassy:7077").set("spark.cores.max", "2")
           val es = new ElasticSearch().appendEsConfigs(conf)
 
           val ssc = new StreamingContext(conf, Seconds(10))

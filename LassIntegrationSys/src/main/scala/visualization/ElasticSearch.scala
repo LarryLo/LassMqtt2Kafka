@@ -26,7 +26,7 @@ class ElasticSearch {
   def saveToEs(allParams: Array[Map[String, String]]) = {
     allParams.foreach { params =>
       val doc = Json(DefaultFormats).write(params)
-      val esPath = host("master1", 9200) / "spark" / "basic" / DateTime.now.millis.toString
+      val esPath = host("127.0.0.1", 9200) / "spark" / "basic" / DateTime.now.millis.toString
       val esReq = esPath.PUT << doc
       val response = Http(esReq OK as.String)
       println(response())
