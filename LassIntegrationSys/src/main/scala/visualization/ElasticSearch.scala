@@ -15,7 +15,7 @@ import com.github.nscala_time.time.Imports._
 class ElasticSearch {
   val logger = LoggerFactory.getLogger(classOf[ElasticSearch])
   val elasticConfigs = ElasticConfigParser.readConfigs
-  val index = "spark" // + datetime.year().toString + "-" + datetime.monthOfYear().toString + "-" + datetime.dayOfMonth().toString
+  val index = "lass-geo" // + datetime.year().toString + "-" + datetime.monthOfYear().toString + "-" + datetime.dayOfMonth().toString
   val esType = "basic"
 
 
@@ -28,8 +28,7 @@ class ElasticSearch {
 
   def saveToEs(allParams: Array[Map[String, Any]]) = {
     allParams.foreach { params =>
-      val datetime = DateTime.now
-      val id = datetime.millis.toString
+      val id = DateTime.now.millis.toString
 
       val doc = Json(DefaultFormats).write(params)
       val esPath = host("127.0.0.1", 9200) / index / "basic" / id

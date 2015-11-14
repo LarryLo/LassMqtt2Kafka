@@ -1,12 +1,11 @@
 import java.text.SimpleDateFormat
 
-import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.slf4j.LoggerFactory
 import queue.{LassMqtt, LassKafka}
 import visualization.ElasticSearch
-import com.github.nscala_time.time.Imports._
+
 
 object Lass {
   def main (args: Array[String]){
@@ -41,8 +40,6 @@ object Lass {
 
           val conf = new SparkConf().setAppName("LASSxKibana").setMaster("spark://lassy:7077").set("spark.cores.max", "2")
           val es = new ElasticSearch().appendEsConfigs(conf)
-          val preSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-          val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
 
           val ssc = new StreamingContext(conf, Seconds(10))
           val dStream = new LassKafka().receiver(ssc)
@@ -57,9 +54,16 @@ object Lass {
                 }
 
               }.toMap
-              val preDatetime =  preSdf.parse((parmMap get "date").get.toString + " " + (parmMap get "time").get.toString)
-              val datetime = sdf.format(preDatetime)
-              parmMap + ("datetime" -> datetime)
+
+              val preDatetime = (parmMap get "date").get.toString + " " + (parmMap get "time").get.toString
+              val datetime = dateTransform(preDatetime)
+
+              val longitude = (parmMap get "gps_lon").get.toString
+              val latitude = (parmMap get "gps_lat").get.toString
+              val location = geoTransform(latitude, longitude)
+
+              parmMap ++ appendParams(location, datetime)
+
             }
 
             val esParams = allParams.collect()
@@ -86,5 +90,21 @@ object Lass {
     } catch {
       case e: Exception => value
     }
+  }
+
+  def dateTransform(preDate : String): String = {
+    val preSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    val preDatetime =  preSdf.parse(preDate)
+
+    sdf.format(preDatetime)
+  }
+
+  def geoTransform(latitude: String, longitude: String): String = {
+    latitude + "," + longitude
+  }
+
+  def appendParams(location: String, datetime: String): Map[String, String] = {
+    Map("location" -> location, "datetime" -> datetime)
   }
 }
