@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory
 import queue.{LassMqtt, LassKafka}
 import visualization.ElasticSearch
 
+import scala.annotation.switch
+
 
 object Lass {
   def main (args: Array[String]){
@@ -14,7 +16,7 @@ object Lass {
       val logger = LoggerFactory.getLogger(Lass.getClass)
       logger.info("Start to run: " + args(0))
 
-      args(0) match {
+      (args(0): @switch) match {
         case "LASSProducer" => {
 
           val conf = new SparkConf().setAppName("LASSProducer").setMaster("spark://lassy:7077").set("spark.cores.max", "2")
@@ -47,10 +49,10 @@ object Lass {
             val allParams = rddMsgs.map { msg =>
               val parmMap = msg.split("""\|""").filterNot(_.isEmpty).map { param =>
                 val pair = param.split("=")
-                if (pair.length != 2 || pair(1).isEmpty) {
-                  (pair(0), 0)
-                } else {
-                  (pair(0), toNewType(pair(1)))
+
+                pair(1).isEmpty match {
+                  case true => (pair(0), 0)
+                  case _ => (pair(0), toNewType(pair(1)))
                 }
 
               }.toMap
@@ -84,6 +86,7 @@ object Lass {
     }
   }
 
+  @throws(classOf[Exception])
   def toNewType(value: String):Any = {
     try {
       value.toFloat
