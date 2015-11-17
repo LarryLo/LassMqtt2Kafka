@@ -60,8 +60,8 @@ object Lass {
               val preDatetime = (parmMap get "date").get.toString + " " + (parmMap get "time").get.toString
               val datetime = dateTransform(preDatetime)
 
-              val longitude = (parmMap get "gps_lon").get.toString
-              val latitude = (parmMap get "gps_lat").get.toString
+              val longitude = (parmMap get "gps_lon").get.toString.toFloat
+              val latitude = (parmMap get "gps_lat").get.toString.toFloat
               val location = geoTransform(latitude, longitude)
 
               parmMap ++ appendParams(location, datetime)
@@ -106,6 +106,16 @@ object Lass {
   def geoTransform(latitude: String, longitude: String): String = {
     latitude + "," + longitude
   }
+  def geoTransform(latitude: Float, longitude: Float): String = {
+    val lat_m = (latitude - latitude.toInt)/60*100*100
+    val lon_m = (longitude - longitude.toInt)/60*100*100
+    val lat_s = (lat_m - lat_m.toInt)*100
+    val lon_s = (lon_m - lon_m.toInt)*100
+    val gps_lat = latitude.toInt + (lat_m.toInt).toFloat/100 + lat_s/10000
+    val gps_lon = longitude.toInt + (lon_m.toInt).toFloat/100 + lon_s/10000
+                 
+    gps_lat.toString + "," + gps_lon.toString
+  } 
 
   def appendParams(location: String, datetime: String): Map[String, String] = {
     Map("location" -> location, "datetime" -> datetime)
