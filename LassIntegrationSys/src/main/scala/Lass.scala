@@ -60,8 +60,8 @@ object Lass {
               val preDatetime = (parmMap get "date").get.toString + " " + (parmMap get "time").get.toString
               val datetime = dateTransform(preDatetime)
 
-              val longitude = (parmMap get "gps_lon").get.toString.toFloat
-              val latitude = (parmMap get "gps_lat").get.toString.toFloat
+              val longitude = (parmMap get "gps_lon").get.asInstanceOf[Float]
+              val latitude = (parmMap get "gps_lat").get.asInstanceOf[Float]
               val location = geoTransform(latitude, longitude)
 
               parmMap ++ appendParams(location, datetime)
