@@ -4,6 +4,7 @@ import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.slf4j.LoggerFactory
 import queue.{LassMqtt, LassKafka}
+import tester.KafkaStressTester
 import visualization.ElasticSearch
 
 import scala.annotation.switch
@@ -17,6 +18,10 @@ object Lass {
       logger.info("Start to run: " + args(0))
 
       (args(0): @switch) match {
+        case "LASSTestProducer" => {
+          new KafkaStressTester(sleepTime = 1000, poolSize = 100).submit()
+        }
+
         case "LASSProducer" => {
 
           val conf = new SparkConf().setAppName("LASSProducer").setMaster("spark://lassy:7077").set("spark.cores.max", "2")
@@ -113,8 +118,8 @@ object Lass {
     val lon_s = (lon_m - lon_m.toInt)*100
     val gps_lat = latitude.toInt + (lat_m.toInt).toFloat/100 + lat_s/10000
     val gps_lon = longitude.toInt + (lon_m.toInt).toFloat/100 + lon_s/10000
-                 
-    gps_lat.toString + "," + gps_lon.toString
+
+    s"$gps_lat,$gps_lon"
   } 
 
   def appendParams(location: String, datetime: String): Map[String, String] = {
