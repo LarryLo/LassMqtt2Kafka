@@ -19,7 +19,7 @@ object Lass {
 
       (args(0): @switch) match {
         case "LASSTestProducer" => {
-          new KafkaStressTester(sleepTime = 1000, poolSize = 100).submit()
+          new KafkaStressTester( sleepTime = args(1).toLong, poolSize = args(2).toInt).submit()
         }
 
         case "LASSProducer" => {
@@ -65,8 +65,8 @@ object Lass {
               val preDatetime = (parmMap get "date").get.toString + " " + (parmMap get "time").get.toString
               val datetime = dateTransform(preDatetime)
 
-              val longitude = (parmMap get "gps_lon").get.asInstanceOf[Float]
-              val latitude = (parmMap get "gps_lat").get.asInstanceOf[Float]
+              val longitude = (parmMap get "gps_lon").get.toString.toFloat
+              val latitude = (parmMap get "gps_lat").get.toString.toFloat
               val location = geoTransform(latitude, longitude)
 
               parmMap ++ appendParams(location, datetime)
@@ -108,9 +108,6 @@ object Lass {
     sdf.format(preDatetime)
   }
 
-  def geoTransform(latitude: String, longitude: String): String = {
-    latitude + "," + longitude
-  }
   def geoTransform(latitude: Float, longitude: Float): String = {
     val lat_m = (latitude - latitude.toInt)/60*100*100
     val lon_m = (longitude - longitude.toInt)/60*100*100
