@@ -3,7 +3,7 @@ package visualization
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.slf4j.LoggerFactory
-import parser.ElasticConfigParser
+import parser.ConfigurationParser
 import dispatch._, Defaults._
 import org.json4s.native.Json
 import org.json4s.DefaultFormats
@@ -14,7 +14,7 @@ import com.github.nscala_time.time.Imports._
  */
 class ElasticSearch {
   val logger = LoggerFactory.getLogger(classOf[ElasticSearch])
-  val elasticConfigs = ElasticConfigParser.readConfigs
+  val elasticConfigs = ConfigurationParser("elasticsearch")
   val index = "lass-geo" // + datetime.year().toString + "-" + datetime.monthOfYear().toString + "-" + datetime.dayOfMonth().toString
   val esType = "basic"
 

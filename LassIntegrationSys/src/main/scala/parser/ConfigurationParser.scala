@@ -6,46 +6,44 @@ import scala.io.Source
 /**
  * Created by luoruhong on 2015/11/1.
  */
-trait TConfigurationParser {
+
+
+trait ConfigurationParser {
   def readConfigs: Option[Map[String, Object]]
 }
 
-object KafkaConfigParser extends TConfigurationParser {
-  val configName = "/kafka.properties"
-  val logger = LoggerFactory.getLogger(KafkaConfigParser.getClass)
+object ConfigurationParser {
+  private object KafkaConfigParser extends ConfigurationParser {
 
-  override def readConfigs = {
-    try {
-      val kafkaConfigs = Source.fromURL(getClass.getResource(configName)).getLines().map( property => {
-        val pair = property.split("=")
-        (pair(0), pair(1))
-      }).toMap
-
-      logger.info("Get Kafka properties successfully.")
-      Some(kafkaConfigs)
-    } catch {
-      case e: Exception => {
-        logger.error(e.toString)
-        None
-      }
-    }
+    val configName = "/kafka.properties"
+    override def readConfigs: Option[Map[String, Object]] = transParams2Map(configName)
   }
 
-}
+  private object ElasticConfigParser extends ConfigurationParser {
 
-object ElasticConfigParser extends TConfigurationParser {
-  val configName = "/elastic.properties"
-  val logger = LoggerFactory.getLogger(ElasticConfigParser.getClass)
+    val configName = "/elasticsearch.properties"
+    override def readConfigs: Option[Map[String, Object]] = transParams2Map(configName)
 
-  override def readConfigs = {
+  }
+
+  def apply(fileName: String): Option[Map[String, Object]] = {
+    if (fileName == "kafka") KafkaConfigParser readConfigs
+    else if (fileName == "elasticsearch") ElasticConfigParser readConfigs
+    else None
+  }
+
+  def transParams2Map(configName: String): Option[Map[String, Object]] = {
+    val logger = LoggerFactory.getLogger(this.getClass)
+
     try {
-      val elasticConfigs = Source.fromURL(getClass.getResource(configName)).getLines().map( property => {
+      val configs = Source.fromURL(this.getClass.getResource(configName)).getLines().map( property => {
         val pair = property.split("=")
         (pair(0), pair(1))
       }).toMap
 
-      logger.info("Get Elastic properties successfully.")
-      Some(elasticConfigs)
+      logger.info(s"Get $configName properties successfully.")
+      Some(configs)
+
     } catch {
       case e: Exception => {
         logger.error(e.toString)
@@ -54,3 +52,4 @@ object ElasticConfigParser extends TConfigurationParser {
     }
   }
 }
+
