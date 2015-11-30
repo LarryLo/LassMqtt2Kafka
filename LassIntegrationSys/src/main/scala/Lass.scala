@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat
 
-import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.slf4j.LoggerFactory
 import queue.{LassMqtt, LassKafka}
@@ -52,25 +52,28 @@ object Lass {
           val dStream = new LassKafka().receiver(ssc)
           dStream.foreachRDD( rddMsgs => {
             val allParams = rddMsgs.map { msg =>
-              val parmMap = msg.split("""\|""").filterNot(_.isEmpty).map { param =>
-                val pair = param.split("=")
 
-                pair(1).isEmpty match {
-                  case true => (pair(0), 0)
-                  case _ => (pair(0), toNewType(pair(1)))
-                }
+              try {
+                val parmMap = msg.split("""\|""").filterNot(_.isEmpty).map { param =>
+                  val pair = param.split("=")
 
-              }.toMap
+                  pair(1).isEmpty match {
+                    case true => (pair(0), 0)
+                    case _ => (pair(0), toNewType(pair(1)))
+                  }
 
-              val preDatetime = (parmMap get "date").get.toString + " " + (parmMap get "time").get.toString
-              val datetime = dateTransform(preDatetime)
+                }.toMap
 
-              val longitude = (parmMap get "gps_lon").get.toString.toFloat
-              val latitude = (parmMap get "gps_lat").get.toString.toFloat
-              val location = geoTransform(latitude, longitude)
+                val preDatetime = (parmMap get "date").get.toString + " " + (parmMap get "time").get.toString
+                val datetime = dateTransform(preDatetime)
 
-              parmMap ++ appendParams(location, datetime)
+                val longitude = (parmMap get "gps_lon").get.toString.toFloat
+                val latitude = (parmMap get "gps_lat").get.toString.toFloat
+                val location = geoTransform(latitude, longitude)
 
+                parmMap ++ appendParams(location, datetime)
+
+              }
             }
 
             val esParams = allParams.collect()
