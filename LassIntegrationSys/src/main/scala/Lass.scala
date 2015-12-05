@@ -7,7 +7,6 @@ import queue.{LassMqtt, LassKafka}
 import tester.KafkaStressTester
 import trasformer.{GeoTransformer, TimeTransformer}
 import visualization.ElasticSearch
-
 import scala.annotation.switch
 
 
@@ -52,46 +51,37 @@ object Lass {
           val ssc = new StreamingContext(conf, Seconds(10))
           val dStream = new LassKafka().receiver(ssc)
           dStream.foreachRDD( rddMsgs => {
-            val allParams = rddMsgs.map { msg =>
+            val allParams = rddMsgs.map( msg => {
+              val parMap = msg.split("""\|""").filterNot(_.isEmpty).map( param => {
+                val pair = param.split("=")
+                pair.length match {
+                  case 2 => (pair(0), toNewType(pair(1)))
+                  case _ => (pair(0), 0)
+                }
+              }).toMap
 
-              try {
-                val parmMap = msg.split("""\|""").filterNot(_.isEmpty).map { param =>
-                  val pair = param.split("=")
+              val location =
+                GeoTransformer
+                  .toEsType((parMap get "gps_lat").get.toString)((parMap get "gps_lon").get.toString)
 
-                  pair(1).isEmpty match {
-                    case true => (pair(0), 0)
-                    case _ => (pair(0), toNewType(pair(1)))
-                  }
-
-                }.toMap
-
-                val datetime =
-                  TimeTransformer.toEsType(
-                    (parmMap get "date").get.toString +
+              val datetime =
+                TimeTransformer.toEsType(
+                  (parMap get "date").get.toString +
                     " " +
-                    (parmMap get "time").get.toString
-                  )
+                    (parMap get "time").get.toString
+                )
 
-                val location =
-                  GeoTransformer.toEsType((parmMap get "gps_lat").get.toString)((parmMap get "gps_lon").get.toString)
-
-                parmMap ++ appendParams(location, datetime)
-
-              }
-            }
-
-            val esParams = allParams.collect()
-            es.saveToEs(esParams)
-
+              parMap ++ appendParams(location, datetime)
+            })
+              val esParams = allParams.collect()
+              es.saveToEs(esParams)
           })
 
           ssc.start()
           ssc.awaitTermination()
         }
-
         case _ => println("There is no " + args(0) + "function.")
       }
-
 
     } else {
       println("You have to input at least a Class name as parameters")
