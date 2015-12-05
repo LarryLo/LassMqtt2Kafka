@@ -5,6 +5,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.slf4j.LoggerFactory
 import queue.{LassMqtt, LassKafka}
 import tester.KafkaStressTester
+import trasformer.{GeoTransformer, TimeTransformer}
 import visualization.ElasticSearch
 
 import scala.annotation.switch
@@ -64,12 +65,15 @@ object Lass {
 
                 }.toMap
 
-                val preDatetime = (parmMap get "date").get.toString + " " + (parmMap get "time").get.toString
-                val datetime = dateTransform(preDatetime)
+                val datetime =
+                  TimeTransformer.toEsType(
+                    (parmMap get "date").get.toString +
+                    " " +
+                    (parmMap get "time").get.toString
+                  )
 
-                val longitude = (parmMap get "gps_lon").get.toString.toFloat
-                val latitude = (parmMap get "gps_lat").get.toString.toFloat
-                val location = geoTransform(latitude, longitude)
+                val location =
+                  GeoTransformer.toEsType((parmMap get "gps_lat").get.toString)((parmMap get "gps_lon").get.toString)
 
                 parmMap ++ appendParams(location, datetime)
 
@@ -102,25 +106,6 @@ object Lass {
       case e: Exception => value
     }
   }
-
-  def dateTransform(preDate : String): String = {
-    val preSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-    val preDatetime =  preSdf.parse(preDate)
-
-    sdf.format(preDatetime)
-  }
-
-  def geoTransform(latitude: Float, longitude: Float): String = {
-    val lat_m = (latitude - latitude.toInt)/60*100*100
-    val lon_m = (longitude - longitude.toInt)/60*100*100
-    val lat_s = (lat_m - lat_m.toInt)*100
-    val lon_s = (lon_m - lon_m.toInt)*100
-    val gps_lat = latitude.toInt + (lat_m.toInt).toFloat/100 + lat_s/10000
-    val gps_lon = longitude.toInt + (lon_m.toInt).toFloat/100 + lon_s/10000
-
-    s"$gps_lat,$gps_lon"
-  } 
 
   def appendParams(location: String, datetime: String): Map[String, String] = {
     Map("location" -> location, "datetime" -> datetime)
