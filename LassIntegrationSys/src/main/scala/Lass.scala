@@ -61,20 +61,22 @@ object Lass {
               }).toMap
 
               val location =
-                GeoTransformer
-                  .toEsType((parMap get "gps_lat").get.toString)((parMap get "gps_lon").get.toString)
+                if (containsKey(parMap, "gps_lat") && containsKey(parMap, "gps_lon")) {
+                  GeoTransformer.
+                    toEsType((parMap get "gps_lat").get.toString)((parMap get "gps_lon").get.toString)
+                }
 
               val datetime =
-                TimeTransformer.toEsType(
-                  (parMap get "date").get.toString +
-                    " " +
-                    (parMap get "time").get.toString
-                )
+                if (containsKey(parMap, "date") && containsKey(parMap, "time")) {
+                  TimeTransformer.
+                    toEsType((parMap get "date").get.toString + " " + (parMap get "time").get.toString)
+                }
 
               parMap ++ appendParams(location, datetime)
             })
-              val esParams = allParams.collect()
-              es.saveToEs(esParams)
+            val esParams = allParams.collect()
+            println(esParams)
+            es.saveToEs(esParams)
           })
 
           ssc.start()
@@ -97,7 +99,11 @@ object Lass {
     }
   }
 
-  def appendParams(location: String, datetime: String): Map[String, String] = {
-    Map("location" -> location, "datetime" -> datetime)
+  def appendParams(location: Any, datetime: Any): Map[String, String] = {
+    Map("location" -> location.asInstanceOf[String], "datetime" -> datetime.asInstanceOf[String])
+  }
+
+  def containsKey(map: Map[String, Any], key: String): Boolean = {
+    map.contains(key)
   }
 }
