@@ -9,7 +9,6 @@ object TimeTransformer {
     val preSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
     val sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
     val preDatetime =  preSdf.parse(preDate)
-
     sdf.format(preDatetime)
   }
 }
